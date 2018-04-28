@@ -1,5 +1,7 @@
 # tmerz.com
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/tobi238/tmerz.com.svg)](https://greenkeeper.io/)
+
 ![Build](https://travis-ci.org/tobi238/tmerz.com.svg?branch=master)
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.1.
