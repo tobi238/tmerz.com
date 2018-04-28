@@ -13,6 +13,9 @@ branches:
 
 before_script:
   - npm install -g @angular/cli
+  # yarn update to latest version
+  - curl -o- -L https://yarnpkg.com/install.sh | bash
+  - export PATH="$HOME/.yarn/bin:$PATH"
 
 script:
   - ng build --prod --aot
