@@ -1,19 +1,4 @@
-<svg version="1.1" x="0px" y="0px" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"
-  xmlSpace="preserve" class="logo" *ngIf="start.loading">
-
-  <ellipse id="background" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -207.1069 499.9998)" class="st0" cx="500"
-    cy="500" rx="500" ry="500" />
-  <g class="pointer" [class.animated]="start.animated">
-    <polygon id="nadel-2" class="st1" points="404.3,368.1 789.5,210.3 631.7,595.6" />
-    <polygon id="nadel-1" class="st1" points="596.6,631.9 211.3,789.7 369.1,404.4" />
-    <ellipse id="nadel-mitte-grau" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -207.9256 500.1771)" class="st0" cx="499.8"
-      cy="501.1" rx="173.7" ry="173.7" />
-    <ellipse id="nadel-mitte-weiss" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -207.5569 499.563)" class="st2" cx="499.2"
-      cy="500.3" rx="142.7" ry="142.7" />
-  </g>
-</svg>
-
-<div class="page_loading" *ngIf="start.loading"></div>
+<div class="page_loading" *ngIf="start.loading" [ngClass]="{loaded: start.loaded}"></div>
 
 <div *ngIf="!start.loading" class="{{ showCard ? 'card show' : 'card' }}">
   <div class='portrait'></div>

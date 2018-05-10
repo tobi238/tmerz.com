@@ -1,4 +1,4 @@
-import { Component, OnInit, animate } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { map, tileLayer } from 'leaflet';
 import { environment } from '../../environments/environment';
 
@@ -29,11 +29,12 @@ export class HomeComponent implements OnInit {
   public showCard: boolean = false
   public showSocials: boolean = false
 
+  private showPageLoading: any
   private showAppAndCard: any
   private showSocialsTimeoutId: any
 
   public start : any = {
-    animated: true,
+    loaded: false,
     loading: true
   }
 
@@ -52,11 +53,16 @@ export class HomeComponent implements OnInit {
 
     // all map tiles loaded
     layer.on('load', e => {
+      // hide page_loading
+      this.showPageLoading = setTimeout(() => {
+        this.start.loaded = true
+      }, 0);
+
       // show card animation
       this.showAppAndCard = setTimeout(() => {
         this.start.loading = false
         this.showCard = true;
-      }, 0);
+      }, 300);
   
       // show socials animation
       this.showSocialsTimeoutId = setTimeout(() => {
@@ -68,6 +74,10 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnDestroy () {
+		if (this.showPageLoading) {
+			clearTimeout(this.showPageLoading);
+    }
+    
 		if (this.showAppAndCard) {
 			clearTimeout(this.showAppAndCard);
 		}
