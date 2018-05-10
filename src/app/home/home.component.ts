@@ -51,23 +51,23 @@ export class HomeComponent implements OnInit {
       accessToken: environment.MAPBOX_API_KEY
     })
 
+    // show card animation
+    this.showAppAndCard = setTimeout(() => {
+      this.start.loading = false
+      this.showCard = true;
+    }, 300);
+
+    // show socials animation
+    this.showSocialsTimeoutId = setTimeout(() => {
+      this.showSocials = true;
+    }, 500);
+
     // all map tiles loaded
     layer.on('load', e => {
       // hide page_loading
       this.showPageLoading = setTimeout(() => {
         this.start.loaded = true
       }, 0);
-
-      // show card animation
-      this.showAppAndCard = setTimeout(() => {
-        this.start.loading = false
-        this.showCard = true;
-      }, 300);
-  
-      // show socials animation
-      this.showSocialsTimeoutId = setTimeout(() => {
-        this.showSocials = true;
-      }, 500);
     })
     layer.addTo(this.map);
     
