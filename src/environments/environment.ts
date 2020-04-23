@@ -5,5 +5,4 @@
 
 export const environment = {
   production: false,
-  MAPBOX_API_KEY: 'pk.eyJ1IjoidG9iaTIzOCIsImEiOiJjamU1cjRvd3UzN3A1MzNvNmVqbjF0MmVxIn0.Lz9uik4LLHZRzpAGlOtJ_A'
 };
