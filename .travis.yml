@@ -8,6 +8,7 @@ node_js:
 
 branches:
   only:
+    - develop
     - master
 
 before_script:
@@ -24,4 +25,4 @@ deploy:
   github_token: $GITHUB_TOKEN
   local_dir: dist/tmerz
   on:
-    branch: master
+    branch: develop
