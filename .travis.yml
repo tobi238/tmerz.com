@@ -4,12 +4,11 @@ addons:
 
 language: node_js
 node_js:
-  - "8"
+  - '10'
 
 branches:
   only:
     - master
-    - /^greenkeeper/.*$/
 
 before_script:
   - npm install -g @angular/cli
