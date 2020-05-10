@@ -1,0 +1,19 @@
+@import "../styles/variables.scss";
+
+.loading_cover {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 999;
+  background-position: center center;
+  background-size: 1px 200%;
+  background-image: linear-gradient(
+    to bottom,
+    rgba($primary, 0.5),
+    rgba($secondary, 0.5)
+  );
+}
