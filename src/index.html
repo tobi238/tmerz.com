@@ -1,13 +1,108 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
-  <title>Tmerz</title>
+  <title>Tobias Merz</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta name="theme-color" content="#393f4a">
+  <meta name="msapplication-TileColor" content="#393f4a">
+
+  <link rel="shortcut icon" href="./favicon.ico">
+
+  <style type="text/css">
+    body {
+      padding: 0;
+      margin: 0;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: linear-gradient(to bottom,
+          rgb(114, 244, 227),
+          rgb(18, 155, 200));
+    }
+
+    .logo {
+      position: relative;
+      z-index: 9999;
+      width: 100px;
+      height: 100px;
+      transform-origin: center;
+      transition: all 1s ease-in-out;
+      animation: grow 1s ease-in-out infinite;
+    }
+
+    .logo .st0 {
+      fill: #393F4A;
+    }
+
+    .logo .st1 {
+      fill: #FFFFFF;
+      stroke: #FFFFFF;
+      stroke-width: 16.0973;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10;
+    }
+
+    .logo .st2 {
+      fill: #FFFFFF;
+    }
+
+    .logo .pointer {
+      transform-origin: center;
+      transition: all 1s ease-in-out;
+      animation: rotate 3s linear infinite forwards;
+    }
+
+    @keyframes rotate {
+      0% {
+        transform: rotateZ(0deg);
+      }
+
+      100% {
+        transform: rotateZ(360deg);
+      }
+    }
+
+    @keyframes grow {
+
+      0%,
+      100% {
+        transform: scale(0.7);
+      }
+
+      50% {
+        transform: scale(1);
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <app-root></app-root>
+  <app-root>
+    <svg version="1.1" x="0px" y="0px" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"
+      xmlSpace="preserve" class="logo">
+
+      <ellipse id="background" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -207.1069 499.9998)" class="st0" cx="500" cy="500" rx="500"
+        ry="500" />
+      <g class="pointer">
+        <polygon id="nadel-2" class="st1" points="404.3,368.1 789.5,210.3 631.7,595.6" />
+        <polygon id="nadel-1" class="st1" points="596.6,631.9 211.3,789.7 369.1,404.4" />
+        <ellipse id="nadel-mitte-grau" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -207.9256 500.1771)" class="st0" cx="499.8" cy="501.1"
+          rx="173.7" ry="173.7" />
+        <ellipse id="nadel-mitte-weiss" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -207.5569 499.563)" class="st2" cx="499.2" cy="500.3"
+          rx="142.7" ry="142.7" />
+      </g>
+    </svg>
+
+  </app-root>
+
+
 </body>
+
 </html>
