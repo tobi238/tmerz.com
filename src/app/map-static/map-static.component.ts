@@ -25,6 +25,5 @@ export class MapStaticComponent implements AfterViewInit {
     objectFitImages(this.$map.nativeElement);
 
     this.$map.nativeElement.onload = () => this.loaded.emit(true);
-    this.$map.nativeElement.src = './assets/map.png';
   }
 }
