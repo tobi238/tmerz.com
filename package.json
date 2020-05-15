@@ -21,6 +21,7 @@
     "@angular/router": "^9.1.7",
     "classlist.js": "^1.1.20150312",
     "leaflet": "^1.6.0",
+    "object-fit-images": "^3.2.4",
     "rxjs": "^6.5.5",
     "tslib": "^2.0.0",
     "zone.js": "^0.10.3"
