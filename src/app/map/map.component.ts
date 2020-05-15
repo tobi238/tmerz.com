@@ -1,6 +1,5 @@
 import {
   Component,
-  OnInit,
   ViewChild,
   AfterViewInit,
   ElementRef,
@@ -14,16 +13,12 @@ import { Map, LatLng, TileLayer } from 'leaflet';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
 })
-export class MapComponent implements OnInit, AfterViewInit {
+export class MapComponent implements AfterViewInit {
   @ViewChild('map') public $map: ElementRef<HTMLDivElement>;
-
-  public map: Map;
 
   @Output() loaded = new EventEmitter<boolean>();
 
-  constructor() {}
-
-  ngOnInit(): void {}
+  public map: Map;
 
   ngAfterViewInit(): void {
     this.map = new Map(this.$map.nativeElement, {
