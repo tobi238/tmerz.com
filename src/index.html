@@ -27,72 +27,78 @@
       width: 100vw;
       overflow: hidden;
 
-      display: flex;
-      align-items: center;
-      justify-content: center;
       background-image: linear-gradient(to bottom,
           rgb(114, 244, 227),
           rgb(18, 155, 200));
-    }
-
-    .logo {
-      position: relative;
-      z-index: 9999;
-      width: 100px;
-      height: 100px;
-      transform-origin: center;
-      transition: all 1s ease-in-out;
-      animation: grow 1s ease-in-out infinite;
-    }
-
-    .logo .st0 {
-      fill: #393F4A;
-    }
-
-    .logo .st1 {
-      fill: #FFFFFF;
-      stroke: #FFFFFF;
-      stroke-width: 16.0973;
-      stroke-linejoin: round;
-      stroke-miterlimit: 10;
-    }
-
-    .logo .st2 {
-      fill: #FFFFFF;
-    }
-
-    .logo .pointer {
-      transform-origin: center;
-      transition: all 1s ease-in-out;
-      animation: rotate 3s linear infinite forwards;
-    }
-
-    @keyframes rotate {
-      0% {
-        transform: rotateZ(0deg);
-      }
-
-      100% {
-        transform: rotateZ(360deg);
-      }
-    }
-
-    @keyframes grow {
-
-      0%,
-      100% {
-        transform: scale(0.7);
-      }
-
-      50% {
-        transform: scale(1);
-      }
     }
   </style>
 </head>
 
 <body>
   <app-root>
+
+    <style type="text/css">
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo {
+        position: relative;
+        z-index: 9999;
+        width: 100px;
+        height: 100px;
+        transform-origin: center;
+        transition: all 1s ease-in-out;
+        animation: grow 1s ease-in-out infinite;
+      }
+
+      .logo .st0 {
+        fill: #393F4A;
+      }
+
+      .logo .st1 {
+        fill: #FFFFFF;
+        stroke: #FFFFFF;
+        stroke-width: 16.0973;
+        stroke-linejoin: round;
+        stroke-miterlimit: 10;
+      }
+
+      .logo .st2 {
+        fill: #FFFFFF;
+      }
+
+      .logo .pointer {
+        transform-origin: center;
+        transition: all 1s ease-in-out;
+        animation: rotate 3s linear infinite forwards;
+      }
+
+      @keyframes rotate {
+        0% {
+          transform: rotateZ(0deg);
+        }
+
+        100% {
+          transform: rotateZ(360deg);
+        }
+      }
+
+      @keyframes grow {
+
+        0%,
+        100% {
+          transform: scale(0.7);
+        }
+
+        50% {
+          transform: scale(1);
+        }
+      }
+    </style>
+
     <svg version="1.1" x="0px" y="0px" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"
       xmlSpace="preserve" class="logo">
 
