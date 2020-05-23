@@ -1,8 +1,7 @@
 import { Component } from '@angular/core';
 import { environment } from '../environments/environment';
 
-// declare gives Angular app access to ga function
-declare let gtag: Function;
+declare const gtag: any;
 
 @Component({
   selector: 'app-root',
@@ -13,7 +12,9 @@ export class AppComponent {
   public mapLoaded = false;
 
   constructor() {
-    if (environment.production) {
+    // enable analytics only on production build, which are not running on localhost
+    if (environment.production && !environment.localhost) {
+      // setup google analytics with the id (more details see: https://developers.google.com/gtagjs)
       gtag('config', environment.analyticsId);
     }
   }
