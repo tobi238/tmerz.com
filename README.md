@@ -41,11 +41,13 @@ The Develop Branch Preview: [https://tobi238.github.io/tmerz.com/](https://tobi2
 
 ## 🛠️ Technology
 
-- **Pure HTML/CSS/JavaScript** - No frameworks or build tools required
-- **Single File Architecture** - Everything contained in `index.html`
+- **Vite** - For fast development and optimized builds
+- **TypeScript** - For type-safe development
+- **Bun** - Fast JavaScript runtime and package manager
 - **Canvas API** - For rendering the procedural map
 - **localStorage** - Persists theme preference
 - **CSS Custom Properties** - For theme switching and responsive design
+- **GitHub Actions** - Automated CI (typecheck, build) and CD (GitHub Pages)
 
 ## 🎯 Map Generation Algorithm
 
@@ -57,7 +59,36 @@ The Develop Branch Preview: [https://tobi238.github.io/tmerz.com/](https://tobi2
 
 ## 🚀 Getting Started
 
-Simply open `index.html` in a modern web browser. No build process or dependencies required.
+### Prerequisites
+
+- [Bun](https://bun.sh/) installed on your machine.
+
+### Installation
+
+```bash
+# Install dependencies
+bun install
+```
+
+### Development
+
+```bash
+# Start development server
+bun run dev
+```
+
+### Build
+
+```bash
+# Typecheck the code
+bun run typecheck
+
+# Build for production
+bun run build
+
+# Preview the production build
+bun run preview
+```
 
 ## 📄 License
 
