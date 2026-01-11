@@ -1111,7 +1111,7 @@ function placeMarkers() {
   main.style.top = "50%";
   main.innerHTML = `
       <div class="main-wrapper">
-        <div class="card" role="region" aria-label="Profile">
+        <div class="card glass-panel" role="region" aria-label="Profile">
           <div class="card-inner">
             <h1 class="name">Tobias Merz</h1>
             <div class="role">Senior Developer • GIS / Geodata • Web Mapping</div>
