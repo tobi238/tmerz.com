@@ -22,6 +22,7 @@
     --muted: rgba(255, 255, 255, 0.68);
 
     --aqua: #65f5ff;
+    --darkblue: rgba(30, 70, 130, 0.95);
     --mint: #66ffb2;
     --violet: #b37bff;
 
@@ -50,22 +51,12 @@ h4,
 h5,
 h6 {
     font-family: "MuseoModerno-bold", sans-serif;
-    color: rgba(255, 255, 255, 0.95);
-}
-
-html.light-mode h1,
-html.light-mode h2,
-html.light-mode h3,
-html.light-mode h4,
-html.light-mode h5,
-html.light-mode h6 {
-    color: rgba(30, 70, 130, 0.95);
 }
 
 html.light-mode {
     --bg0: #f8f8fa;
     --bg1: #ffffff;
-    --ink: rgba(0, 0, 0, 0.92);
+    --ink: var(--darkblue);
     --muted: rgba(0, 0, 0, 0.68);
     --shadow: 0 30px 120px rgba(0, 0, 0, 0.1);
     --shadow2: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -380,14 +371,9 @@ html.light-mode .pin::after {
     display: grid;
     place-items: center;
     transform: rotate(45deg);
-    color: rgba(255, 255, 255, 0.95);
+    color: var(--ink);
     user-select: none;
-    transition: color 300ms ease;
     pointer-events: auto;
-}
-
-html.light-mode .pin-icon {
-    color: rgba(50, 110, 180, 0.95);
 }
 
 .pin-icon svg {
@@ -427,7 +413,6 @@ html.light-mode .marker:hover .pin {
     border-radius: 10px;
     background: rgba(10, 14, 28, 0.72);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.9);
     font-size: 12px;
     white-space: nowrap;
     opacity: 0;
@@ -445,7 +430,6 @@ html.light-mode .marker:hover .pin {
 html.light-mode .tooltip {
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(100, 150, 200, 0.3);
-    color: rgba(30, 60, 100, 0.95);
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
 }
 
@@ -531,10 +515,8 @@ html.light-mode .drag-handle:hover {
     border-radius: 50% 50% 50% 0;
 }
 
-/* Glass panel base - shared by card, legend, copyright */
-.card,
-.legend,
-.copyright {
+/* Glass panel base - reusable glass-morphism container */
+.glass-panel {
     position: relative;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -547,41 +529,7 @@ html.light-mode .drag-handle:hover {
         box-shadow 300ms ease;
 }
 
-html.light-mode .card,
-html.light-mode .legend,
-html.light-mode .copyright {
-    background: rgb(255 255 255 / 53%);
-    border: 1px solid rgba(100, 150, 200, 0.25);
-    backdrop-filter: blur(2px);
-}
-
-.card {
-    width: min(560px, calc(100vw - 28px));
-    border-radius: var(--radius-xl);
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.12),
-        rgba(255, 255, 255, 0.06)
-    );
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(16px);
-    margin-top: -8px;
-}
-
-html.light-mode .card {
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.7),
-        rgba(240, 250, 255, 0.5)
-    );
-    border: 1px solid rgba(100, 150, 200, 0.2);
-    backdrop-filter: blur(16px);
-}
-
-.card::before,
-.legend::before,
-.copyright::before {
+.glass-panel::before {
     content: "";
     position: absolute;
     inset: -2px;
@@ -602,15 +550,14 @@ html.light-mode .card {
     transition: opacity 300ms ease;
 }
 
-html.light-mode .card::before {
-    opacity: 0.08;
+html.light-mode .glass-panel {
+    background: rgb(255 255 255 / 53%);
+    border: 1px solid rgb(8 118 227 / 21%);
+    backdrop-filter: blur(4px);
 }
 
-html.light-mode .legend::before {
-    opacity: 0;
-}
-html.light-mode .copyright::before {
-    opacity: 0;
+.card {
+    width: min(560px, calc(100vw - 28px));
 }
 
 .card-inner {
@@ -630,23 +577,11 @@ html.light-mode .copyright::before {
     font-size: 14px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.75);
-    transition: color 300ms ease;
-}
-
-html.light-mode .role {
-    color: rgba(60, 100, 150, 0.8);
 }
 
 .tagline {
     margin: 12px 0 0;
     font-size: 15px;
-    color: rgba(255, 255, 255, 0.78);
-    transition: color 300ms ease;
-}
-
-html.light-mode .tagline {
-    color: rgba(50, 80, 120, 0.85);
 }
 
 .chips {
@@ -664,7 +599,6 @@ html.light-mode .tagline {
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.82);
     transition:
         background 300ms ease,
         border-color 300ms ease,
@@ -674,17 +608,6 @@ html.light-mode .tagline {
 html.light-mode .chip {
     background: rgba(100, 150, 200, 0.12);
     border: 1px solid rgba(100, 150, 200, 0.25);
-    color: rgba(40, 80, 130, 0.9);
-}
-
-.chip strong {
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.95);
-    transition: color 300ms ease;
-}
-
-html.light-mode .chip strong {
-    color: rgba(30, 70, 130, 0.95);
 }
 
 .divider {
@@ -720,7 +643,7 @@ html.light-mode .divider {
     appearance: none;
     border: 1px solid rgba(255, 255, 255, 0.14);
     background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.92);
+    color: var(--ink);
     padding: 10px 12px;
     border-radius: 12px;
     font-weight: 600;
@@ -741,7 +664,6 @@ html.light-mode .divider {
 html.light-mode .btn {
     border: 1px solid rgba(100, 150, 200, 0.3);
     background: rgba(100, 150, 200, 0.1);
-    color: rgba(30, 70, 130, 0.92);
 }
 
 .btn:hover {
@@ -772,7 +694,6 @@ html.light-mode .btn:focus-visible {
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.18);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.75);
     transition:
         background 300ms ease,
         border-color 300ms ease,
@@ -782,22 +703,15 @@ html.light-mode .btn:focus-visible {
 html.light-mode .btn .kbd {
     background: rgba(100, 150, 200, 0.15);
     border: 1px solid rgba(100, 150, 200, 0.25);
-    color: rgba(40, 80, 130, 0.8);
 }
 
 .footer-note {
     margin-top: 12px;
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.55);
-    transition: color 300ms ease;
 }
 
 .footer-note.warning {
     color: var(--violet);
-}
-
-html.light-mode .footer-note {
-    color: rgba(80, 110, 150, 0.65);
 }
 
 /* Simplified legend */
@@ -814,13 +728,7 @@ html.light-mode .footer-note {
     font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.72);
     margin: 0 0 8px;
-    transition: color 300ms ease;
-}
-
-html.light-mode .legend-title {
-    color: rgba(60, 100, 150, 0.8);
 }
 
 .legend-grid {
@@ -834,14 +742,8 @@ html.light-mode .legend-title {
     grid-template-columns: 14px 1fr;
     gap: 10px;
     align-items: center;
-    color: rgba(255, 255, 255, 0.72);
     font-size: 12px;
     min-width: 0;
-    transition: color 300ms ease;
-}
-
-html.light-mode .legend-item {
-    color: rgba(50, 80, 120, 0.85);
 }
 
 .swatch {
@@ -895,12 +797,7 @@ html.light-mode .swatch.river {
     right: 14px;
     bottom: 14px;
     padding: 5px;
-    color: rgba(255, 255, 255, 0.85);
     font-size: 10px;
-}
-
-html.light-mode .copyright {
-    color: rgba(50, 80, 120, 0.85);
 }
 
 /* Tablet/medium screens */
