@@ -109,6 +109,7 @@
             html,
             body {
                 height: 100%;
+                user-select: none;
             }
 
             body {
@@ -262,6 +263,80 @@
                 position: absolute;
                 transform: translate(-50%, -100%);
                 pointer-events: auto;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .marker-drag-handle {
+                width: 24px;
+                height: 24px;
+                margin-bottom: 4px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.15);
+                border: 1.5px solid rgba(255, 255, 255, 0.3);
+                cursor: grab;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition:
+                    background 240ms ease,
+                    border-color 240ms ease,
+                    transform 240ms ease,
+                    box-shadow 240ms ease;
+                pointer-events: auto;
+                flex-shrink: 0;
+            }
+
+            .marker-drag-handle:hover {
+                background: rgba(255, 255, 255, 0.25);
+                border-color: rgba(101, 245, 255, 0.5);
+                box-shadow: 0 0 12px rgba(101, 245, 255, 0.3);
+            }
+
+            .marker-drag-handle:active {
+                cursor: grabbing;
+                transform: scale(1.1);
+                background: rgba(101, 245, 255, 0.2);
+                border-color: rgba(101, 245, 255, 0.7);
+            }
+
+            html.light-mode .marker-drag-handle {
+                background: rgba(100, 150, 200, 0.15);
+                border: 1.5px solid rgba(100, 150, 200, 0.4);
+            }
+
+            html.light-mode .marker-drag-handle:hover {
+                background: rgba(100, 150, 200, 0.25);
+                border-color: rgba(80, 150, 255, 0.6);
+                box-shadow: 0 0 12px rgba(80, 150, 255, 0.3);
+            }
+
+            html.light-mode .marker-drag-handle:active {
+                background: rgba(80, 150, 255, 0.2);
+                border-color: rgba(80, 150, 255, 0.8);
+            }
+
+            .marker-drag-handle::before {
+                content: "";
+                width: 6px;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.7);
+                border-radius: 50%;
+                box-shadow:
+                    0 -6px 0 rgba(255, 255, 255, 0.7),
+                    0 6px 0 rgba(255, 255, 255, 0.7),
+                    -6px 0 0 rgba(255, 255, 255, 0.7),
+                    6px 0 0 rgba(255, 255, 255, 0.7);
+            }
+
+            html.light-mode .marker-drag-handle::before {
+                background: rgba(100, 150, 200, 0.8);
+                box-shadow:
+                    0 -6px 0 rgba(100, 150, 200, 0.8),
+                    0 6px 0 rgba(100, 150, 200, 0.8),
+                    -6px 0 0 rgba(100, 150, 200, 0.8),
+                    6px 0 0 rgba(100, 150, 200, 0.8);
             }
 
             .pin {
@@ -339,6 +414,7 @@
                 color: rgba(255, 255, 255, 0.95);
                 user-select: none;
                 transition: color 300ms ease;
+                pointer-events: auto;
             }
 
             html.light-mode .pin-icon {
@@ -414,6 +490,8 @@
                 transform: translate(-50%, -50%);
                 pointer-events: auto;
                 z-index: 1;
+                flex-direction: column;
+                display: flex;
             }
 
             .main-wrapper {
@@ -1271,6 +1349,8 @@
             // Camera state for panning and zooming
             let camera = { x: 0, y: 0, zoom: 1 };
             let isDragging = false;
+            let isDraggingMarker = false;
+            let draggedMarkerIndex = -1;
             let dragStart = { x: 0, y: 0 };
             let dragOffset = { x: 0, y: 0 };
             let mapWidth = 0;
@@ -2415,13 +2495,14 @@
                     // Store world coordinates as data attributes
                     el.dataset.worldX = x;
                     el.dataset.worldY = y;
+                    el.dataset.markerIndex = markerPositions.length - 1;
                     // Position in screen space with camera offset and zoom
                     const screenX = x * camera.zoom + camera.x;
                     const screenY = y * camera.zoom + camera.y;
                     el.style.left = `${screenX}px`;
                     el.style.top = `${screenY}px`;
-                    el.style.transform = `translate(-50%, -100%) scale(${camera.zoom})`;
                     el.innerHTML = `
+            <div class="marker-drag-handle"></div>
             <div class="tooltip">${link.name}</div>
             <a href="${link.url}" target="_blank" rel="noopener" aria-label="${link.name}">
               <div class="pin">
@@ -2588,8 +2669,58 @@
                 }
             }
 
+            // ====== MARKER DRAGGING ======
+            function onMarkerDragStart(e) {
+                if (
+                    !e.target.classList.contains("marker-drag-handle") &&
+                    !e.target.parentElement.classList.contains(
+                        "marker-drag-handle",
+                    )
+                ) {
+                    return;
+                }
+
+                isAnimating = false;
+                isDraggingMarker = true;
+
+                const marker = e.target.closest(".marker");
+                draggedMarkerIndex = parseInt(marker.dataset.markerIndex);
+
+                dragStart.x = e.clientX;
+                dragStart.y = e.clientY;
+                dragOffset.x = 0;
+                dragOffset.y = 0;
+            }
+
+            function onMarkerDragMove(e) {
+                if (!isDraggingMarker || draggedMarkerIndex < 0) return;
+
+                const dx = e.clientX - dragStart.x;
+                const dy = e.clientY - dragStart.y;
+
+                // Convert screen delta to world delta
+                const worldDx = dx / camera.zoom;
+                const worldDy = dy / camera.zoom;
+
+                const marker = markerPositions[draggedMarkerIndex];
+                marker.x += worldDx - dragOffset.x;
+                marker.y += worldDy - dragOffset.y;
+
+                dragOffset.x = worldDx;
+                dragOffset.y = worldDy;
+
+                updateMarkerPositions();
+            }
+
+            function onMarkerDragEnd(e) {
+                isDraggingMarker = false;
+                draggedMarkerIndex = -1;
+            }
+
             // ====== PANNING ======
             function onMouseDown(e) {
+                if (isDraggingMarker) return;
+
                 if (e.target !== canvas) return;
                 isAnimating = false;
                 isDragging = true;
@@ -2601,6 +2732,11 @@
             }
 
             function onMouseMove(e) {
+                if (isDraggingMarker) {
+                    onMarkerDragMove(e);
+                    return;
+                }
+
                 if (!isDragging) return;
 
                 const dx = e.clientX - dragStart.x;
@@ -2615,6 +2751,11 @@
             }
 
             function onMouseUp(e) {
+                if (isDraggingMarker) {
+                    onMarkerDragEnd(e);
+                    return;
+                }
+
                 isDragging = false;
                 canvas.style.cursor = "grab";
             }
@@ -2626,6 +2767,7 @@
                     // Pinch zoom starting
                     isAnimating = false;
                     isDragging = false;
+                    isDraggingMarker = false;
                     lastPinchDistance = getPinchDistance(
                         e.touches[0],
                         e.touches[1],
@@ -2701,23 +2843,24 @@
                 }
                 if (e.touches.length === 0) {
                     isDragging = false;
+                    isDraggingMarker = false;
+                    draggedMarkerIndex = -1;
                 }
             }
 
             function updateMarkerPositions() {
                 const markers = markersEl.querySelectorAll(".marker");
-                markers.forEach((marker) => {
+                markers.forEach((marker, idx) => {
                     if (marker.classList.contains("main")) return;
 
-                    const worldX = parseFloat(marker.dataset.worldX);
-                    const worldY = parseFloat(marker.dataset.worldY);
+                    const worldX = markerPositions[idx]?.x;
+                    const worldY = markerPositions[idx]?.y;
 
                     if (!isNaN(worldX) && !isNaN(worldY)) {
                         const screenX = worldX * camera.zoom + camera.x;
                         const screenY = worldY * camera.zoom + camera.y;
                         marker.style.left = `${screenX}px`;
                         marker.style.top = `${screenY}px`;
-                        marker.style.transform = `translate(-50%, -100%)`;
                     }
                 });
             }
@@ -2808,8 +2951,9 @@
                 });
                 window.addEventListener("keydown", onKeyDown);
 
-                // Mouse events for panning
+                // Mouse events for panning and marker dragging
                 canvas.addEventListener("mousedown", onMouseDown);
+                markersEl.addEventListener("mousedown", onMarkerDragStart);
                 window.addEventListener("mousemove", onMouseMove);
                 window.addEventListener("mouseup", onMouseUp);
 
