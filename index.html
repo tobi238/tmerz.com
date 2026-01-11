@@ -2293,6 +2293,15 @@
                     { x: mainBounds.centerX, y: mainBounds.centerY },
                 ];
 
+                // Define the visible initial viewport area in world coordinates
+                // The initial camera is centered, so visible area is centered in the map
+                const viewportBounds = {
+                    minX: (mapWidth - window.innerWidth) / 2,
+                    maxX: (mapWidth + window.innerWidth) / 2,
+                    minY: (mapHeight - window.innerHeight) / 2,
+                    maxY: (mapHeight + window.innerHeight) / 2,
+                };
+
                 for (const link of LINKS) {
                     let x = 0;
                     let y = 0;
@@ -2308,31 +2317,36 @@
 
                         const p =
                             r.path[Math.floor(Math.random() * r.path.length)];
+
+                        // Only consider roads within the initial viewport
+                        if (
+                            p.x < viewportBounds.minX ||
+                            p.x > viewportBounds.maxX ||
+                            p.y < viewportBounds.minY ||
+                            p.y > viewportBounds.maxY
+                        ) {
+                            attempts++;
+                            continue;
+                        }
+
                         const offset = 110 + Math.random() * 80;
                         const ang = Math.random() * Math.PI * 2;
 
                         x = p.x + Math.cos(ang) * offset;
                         y = p.y + Math.sin(ang) * offset;
 
-                        // Check if point is in exclusion zones
+                        // Ensure marker stays within initial viewport
                         if (
-                            isPointInExclusionZone(
-                                x,
-                                y,
-                                mainBounds,
-                                legendBounds,
-                            )
+                            x < viewportBounds.minX + CFG.markerPadding ||
+                            x > viewportBounds.maxX - CFG.markerPadding ||
+                            y < viewportBounds.minY + CFG.markerPadding ||
+                            y > viewportBounds.maxY - CFG.markerPadding
                         ) {
                             attempts++;
                             continue;
                         }
 
-                        // Clamp to screen
-                        const clamped = clampToScreen(x, y, CFG.markerPadding);
-                        x = clamped.x;
-                        y = clamped.y;
-
-                        // Re-check exclusion zones after clamping
+                        // Check if point is in exclusion zones
                         if (
                             isPointInExclusionZone(
                                 x,
