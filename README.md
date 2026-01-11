@@ -6,6 +6,8 @@ An interactive personal portfolio website featuring a procedurally generated cit
 
 My page is live at [https://tmerz.com/](https://tmerz.com/).
 
+Deploy Status: [![Netlify Status](https://api.netlify.com/api/v1/badges/8eaf3811-3293-4750-8f87-a8d5300818ce/deploy-status)](https://app.netlify.com/projects/tmerz/deploys)
+
 The Develop Branch Preview: [https://tobi238.github.io/tmerz.com/](https://tobi238.github.io/tmerz.com/)
 
 ## ✨ Features
