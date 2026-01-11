@@ -1158,26 +1158,17 @@
                 };
             }
 
-            function isPointInExclusionZone(
-                x,
-                y,
-                mainX,
-                mainY,
-                mainRadius,
-                legendRect,
-            ) {
+            function isPointInExclusionZone(x, y, mainBounds, legendBounds) {
                 // Check distance from main card
-                if (dist(x, y, mainX, mainY) < mainRadius) {
+                if (
+                    dist(x, y, mainBounds.centerX, mainBounds.centerY) <
+                    mainBounds.radius
+                ) {
                     return true;
                 }
 
-                // Check legend bounds
-                if (
-                    x >= legendRect.left &&
-                    x <= legendRect.right &&
-                    y >= legendRect.top &&
-                    y <= legendRect.bottom
-                ) {
+                // Check if marker overlaps with legend
+                if (doesMarkerOverlapLegend(x, y, legendBounds)) {
                     return true;
                 }
 
@@ -1204,6 +1195,83 @@
                     top: rect.top - padding,
                     bottom: rect.bottom + padding,
                 };
+            }
+
+            function getMainCardBounds() {
+                const cardEl = document.querySelector(".card");
+                if (!cardEl) {
+                    // Fallback to fixed radius if card not found
+                    return {
+                        centerX: window.innerWidth / 2,
+                        centerY: window.innerHeight / 2,
+                        radius: 340,
+                    };
+                }
+
+                const rect = cardEl.getBoundingClientRect();
+                const pinEl = document.querySelector(".main .pin");
+                const pinHeight = pinEl ? pinEl.offsetHeight : 60;
+
+                // Add padding around the card + pin
+                const padding = 40;
+
+                // Calculate the bounding circle that encompasses the card and pin
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+
+                // The card is centered, so we need to account for:
+                // - Half the card width/height
+                // - The pin above it
+                // - Extra padding
+                const cardHalfWidth = rect.width / 2;
+                const cardHalfHeight = rect.height / 2;
+
+                // Use the larger dimension to create a circular exclusion zone
+                const radius =
+                    Math.max(
+                        Math.sqrt(
+                            cardHalfWidth * cardHalfWidth +
+                                cardHalfHeight * cardHalfHeight,
+                        ),
+                        cardHalfHeight + pinHeight,
+                    ) + padding;
+
+                return { centerX, centerY, radius };
+            }
+
+            function getPinSize() {
+                // Get current pin size from CSS variable
+                const pinSize =
+                    parseInt(
+                        getComputedStyle(document.documentElement)
+                            .getPropertyValue("--pin-size")
+                            .trim(),
+                    ) || 68;
+                return pinSize;
+            }
+
+            function doesMarkerOverlapLegend(x, y, legendBounds) {
+                const pinSize = getPinSize();
+                const markerRadius = pinSize / 2;
+
+                // Check if the marker circle intersects with the legend rectangle
+                // Find the closest point on the rectangle to the marker center
+                const closestX = Math.max(
+                    legendBounds.left,
+                    Math.min(x, legendBounds.right),
+                );
+                const closestY = Math.max(
+                    legendBounds.top,
+                    Math.min(y, legendBounds.bottom),
+                );
+
+                // Calculate distance from marker center to closest point
+                const dx = x - closestX;
+                const dy = y - closestY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Add a small buffer
+                return distance < markerRadius + 10;
             }
 
             // ====== MAP PRIMITIVES ======
@@ -2041,15 +2109,13 @@
                 const btnMode = main.querySelector("#mode-toggle");
                 btnMode.addEventListener("click", toggleMode);
 
-                // Main marker exclusion zone (center of screen)
-                const mainX = window.innerWidth / 2;
-                const mainY = window.innerHeight / 2;
-                const mainRadius = 340;
-
-                // Legend exclusion zone
+                // Get dynamic exclusion zones
+                const mainBounds = getMainCardBounds();
                 const legendBounds = getLegendBounds();
 
-                const placed = [{ x: mainX, y: mainY }];
+                const placed = [
+                    { x: mainBounds.centerX, y: mainBounds.centerY },
+                ];
 
                 for (const link of LINKS) {
                     let x = 0;
@@ -2077,9 +2143,7 @@
                             isPointInExclusionZone(
                                 x,
                                 y,
-                                mainX,
-                                mainY,
-                                mainRadius,
+                                mainBounds,
                                 legendBounds,
                             )
                         ) {
@@ -2091,6 +2155,19 @@
                         const clamped = clampToScreen(x, y, CFG.markerPadding);
                         x = clamped.x;
                         y = clamped.y;
+
+                        // Re-check exclusion zones after clamping
+                        if (
+                            isPointInExclusionZone(
+                                x,
+                                y,
+                                mainBounds,
+                                legendBounds,
+                            )
+                        ) {
+                            attempts++;
+                            continue;
+                        }
 
                         // Ensure minimum distance from other markers
                         const ok = !placed.some(
