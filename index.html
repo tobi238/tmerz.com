@@ -26,6 +26,11 @@
                 --radius-xl: 28px;
                 --radius-lg: 20px;
                 --radius-md: 14px;
+
+                /* Marker sizes - larger on desktop */
+                --pin-size: 68px;
+                --pin-main-size: 76px;
+                --pin-icon-size: 34px;
             }
 
             html.light-mode {
@@ -201,8 +206,8 @@
 
             .pin {
                 position: relative;
-                width: 54px;
-                height: 54px;
+                width: var(--pin-size);
+                height: var(--pin-size);
                 border-radius: 50% 50% 50% 0;
                 transform: rotate(-45deg);
                 background: linear-gradient(
@@ -281,8 +286,8 @@
             }
 
             .pin-icon svg {
-                width: 28px;
-                height: 28px;
+                width: var(--pin-icon-size);
+                height: var(--pin-icon-size);
                 stroke: currentColor;
                 stroke-width: 1.5;
                 fill: none;
@@ -358,8 +363,8 @@
             }
 
             .main .pin {
-                width: 60px;
-                height: 60px;
+                width: var(--pin-main-size);
+                height: var(--pin-main-size);
                 transform: rotate(-45deg);
                 margin: 0;
                 flex-shrink: 0;
@@ -718,21 +723,23 @@
                 background: rgba(120, 180, 255, 0.6);
             }
 
+            /* Tablet/medium screens */
+            @media (max-width: 1024px) {
+                :root {
+                    /* Medium marker sizes on tablets */
+                    --pin-size: 56px;
+                    --pin-main-size: 64px;
+                    --pin-icon-size: 28px;
+                }
+            }
+
             /* Mobile adjustments */
             @media (max-width: 600px) {
-                .main .pin {
-                    width: 54px;
-                    height: 54px;
-                }
-
-                .pin {
-                    width: 48px;
-                    height: 48px;
-                }
-
-                .pin-icon svg {
-                    width: 24px;
-                    height: 24px;
+                :root {
+                    /* Smaller marker sizes on mobile */
+                    --pin-size: 44px;
+                    --pin-main-size: 50px;
+                    --pin-icon-size: 22px;
                 }
 
                 .card {
