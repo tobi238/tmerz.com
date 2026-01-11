@@ -823,10 +823,6 @@
                     display: none;
                 }
 
-                .footer-note {
-                    display: none;
-                }
-
                 .legend {
                     left: 10px;
                     bottom: 10px;
@@ -2269,7 +2265,7 @@
                   </button>
                 </div>
                 <div class="footer-note">
-                  Tip: Hover markers to reveal labels. The city regenerates on each load.
+                  Tip: Move and zoom around the map to explore different areas and find hidden treasures.
                 </div>
               </div>
             </div>
@@ -2319,12 +2315,13 @@
                         const p =
                             r.path[Math.floor(Math.random() * r.path.length)];
 
-                        // Only consider roads within the initial viewport
+                        // Only consider roads within or near the visible initial viewport
+                        const margin = 200;
                         if (
-                            p.x < viewportBounds.minX ||
-                            p.x > viewportBounds.maxX ||
-                            p.y < viewportBounds.minY ||
-                            p.y > viewportBounds.maxY
+                            p.x < viewportBounds.minX - margin ||
+                            p.x > viewportBounds.maxX + margin ||
+                            p.y < viewportBounds.minY - margin ||
+                            p.y > viewportBounds.maxY + margin
                         ) {
                             attempts++;
                             continue;
@@ -2336,12 +2333,12 @@
                         x = p.x + Math.cos(ang) * offset;
                         y = p.y + Math.sin(ang) * offset;
 
-                        // Ensure marker stays within initial viewport
+                        // Check if marker is at least somewhat visible (relaxed constraints)
                         if (
-                            x < viewportBounds.minX + CFG.markerPadding ||
-                            x > viewportBounds.maxX - CFG.markerPadding ||
-                            y < viewportBounds.minY + CFG.markerPadding ||
-                            y > viewportBounds.maxY - CFG.markerPadding
+                            x < viewportBounds.minX - CFG.markerPadding ||
+                            x > viewportBounds.maxX + CFG.markerPadding ||
+                            y < viewportBounds.minY - CFG.markerPadding ||
+                            y > viewportBounds.maxY + CFG.markerPadding
                         ) {
                             attempts++;
                             continue;
