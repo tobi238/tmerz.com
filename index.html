@@ -763,7 +763,7 @@
                 }
 
                 .tagline {
-                    display: none;
+                    /*display: none;*/
                 }
 
                 .chips {
@@ -787,17 +787,22 @@
                     display: none;
                 }
 
+                .footer-note {
+                    display: none;
+                }
+
                 .legend {
                     left: 10px;
                     bottom: 10px;
                     padding: 10px 10px;
                     border-radius: 14px;
                     max-width: calc(100vw - 20px);
+                    width: 100%;
                 }
 
                 .legend-grid {
-                    grid-template-columns: 1fr 1fr;
-                    gap: 8px 10px;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 6px;
                 }
             }
 
