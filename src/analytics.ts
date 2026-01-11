@@ -8,6 +8,7 @@ const POSTHOG_API_KEY = import.meta.env.VITE_POSTHOG_API_KEY;
 
 if (POSTHOG_API_KEY) {
   posthog.init(POSTHOG_API_KEY, {
+    cookieless_mode: "always",
     person_profiles: "identified_only",
   });
 } else {
