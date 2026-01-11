@@ -1307,6 +1307,9 @@
                     "(prefers-color-scheme: dark)",
                 ).matches;
 
+                console.debug("savedMode:", savedMode);
+                console.debug("prefersDark:", prefersDark);
+
                 if (savedMode === "light") {
                     setLightMode();
                 } else if (savedMode === "dark") {
@@ -3079,15 +3082,8 @@
 
             // ====== INIT ======
             function init() {
-                // Restore theme from localStorage
-                const savedTheme = localStorage.getItem("theme-mode");
-                if (savedTheme === "light") {
-                    isDarkMode = false;
-                    document.documentElement.classList.add("light-mode");
-                } else {
-                    isDarkMode = true;
-                    document.documentElement.classList.remove("light-mode");
-                }
+                // Initialize theme using the proper function
+                initializeTheme();
 
                 resize();
                 generateAll();
