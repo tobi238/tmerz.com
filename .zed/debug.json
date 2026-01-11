@@ -4,7 +4,7 @@
     "label": "Debug app in Chrome",
     "type": "chrome",
     "request": "launch",
-    "file": "$ZED_WORKTREE_ROOT/index.html",
+    "url": "http://localhost:3000",
     "webRoot": "$ZED_WORKTREE_ROOT",
     "console": "integratedTerminal",
     "skipFiles": ["<node_internals>/**"],
