@@ -393,6 +393,7 @@
             .main {
                 transform: translate(-50%, -50%);
                 pointer-events: auto;
+                z-index: 1;
             }
 
             .main-wrapper {
@@ -822,10 +823,6 @@
                     display: none;
                 }
 
-                .footer-note {
-                    display: none;
-                }
-
                 .legend {
                     left: 10px;
                     bottom: 10px;
@@ -1210,6 +1207,9 @@
                 // Marker placement
                 markerPadding: 80,
                 markerMinDistance: 180,
+
+                // Map size multiplier
+                mapScale: 3,
             };
 
             // Social links (replace with your real URLs)
@@ -1244,17 +1244,41 @@
             let parks = [];
             let nodes = {};
 
+            // Camera state for panning and zooming
+            let camera = { x: 0, y: 0, zoom: 1 };
+            let isDragging = false;
+            let dragStart = { x: 0, y: 0 };
+            let dragOffset = { x: 0, y: 0 };
+            let mapWidth = 0;
+            let mapHeight = 0;
+
+            // Zoom constraints
+            const MIN_ZOOM = 0.5;
+            const MAX_ZOOM = 3;
+
+            // Pinch zoom state
+            let lastPinchDistance = 0;
+
             // ====== UTIL ======
             function resize() {
                 const dpr = Math.max(
                     1,
                     Math.floor(window.devicePixelRatio || 1),
                 );
+
+                // Set map size to be larger than viewport
+                mapWidth = Math.floor(window.innerWidth * CFG.mapScale);
+                mapHeight = Math.floor(window.innerHeight * CFG.mapScale);
+
                 canvas.width = Math.floor(window.innerWidth * dpr);
                 canvas.height = Math.floor(window.innerHeight * dpr);
                 canvas.style.width = `${window.innerWidth}px`;
                 canvas.style.height = `${window.innerHeight}px`;
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                // Center camera on initial load
+                camera.x = -(mapWidth - window.innerWidth) / 2;
+                camera.y = -(mapHeight - window.innerHeight) / 2;
             }
 
             function prand(seed) {
@@ -1301,8 +1325,8 @@
 
             function clampToScreen(x, y, pad) {
                 return {
-                    x: clamp(x, pad, window.innerWidth - pad),
-                    y: clamp(y, pad, window.innerHeight - pad),
+                    x: clamp(x, pad, mapWidth - pad),
+                    y: clamp(y, pad, mapHeight - pad),
                 };
             }
 
@@ -1348,10 +1372,10 @@
             function getMainCardBounds() {
                 const cardEl = document.querySelector(".card");
                 if (!cardEl) {
-                    // Fallback to fixed radius if card not found
+                    // Fallback to fixed radius if card not found (centered in map world)
                     return {
-                        centerX: window.innerWidth / 2,
-                        centerY: window.innerHeight / 2,
+                        centerX: mapWidth / 2,
+                        centerY: mapHeight / 2,
                         radius: 340,
                     };
                 }
@@ -1364,8 +1388,9 @@
                 const padding = 40;
 
                 // Calculate the bounding circle that encompasses the card and pin
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
+                // Main card is always at the center of the map in world coordinates
+                const centerX = mapWidth / 2;
+                const centerY = mapHeight / 2;
 
                 // The card is centered, so we need to account for:
                 // - Half the card width/height
@@ -1437,30 +1462,30 @@
                     const maxMeander = 46;
 
                     let x = this.isVertical
-                        ? window.innerWidth * (0.3 + Math.random() * 0.4)
+                        ? mapWidth * (0.3 + Math.random() * 0.4)
                         : -50;
                     let y = this.isVertical
                         ? -50
-                        : window.innerHeight * (0.3 + Math.random() * 0.4);
+                        : mapHeight * (0.3 + Math.random() * 0.4);
 
                     let meander = 0;
 
                     if (this.isVertical) {
-                        while (y < window.innerHeight + 100) {
+                        while (y < mapHeight + 100) {
                             this.points.push({ x, y });
                             meander += (Math.random() - 0.5) * 15;
                             meander = clamp(meander, -maxMeander, maxMeander);
                             x += meander * 0.12;
-                            x = clamp(x, 60, window.innerWidth - 60);
+                            x = clamp(x, 60, mapWidth - 60);
                             y += step;
                         }
                     } else {
-                        while (x < window.innerWidth + 100) {
+                        while (x < mapWidth + 100) {
                             this.points.push({ x, y });
                             meander += (Math.random() - 0.5) * 15;
                             meander = clamp(meander, -maxMeander, maxMeander);
                             y += meander * 0.12;
-                            y = clamp(y, 60, window.innerHeight - 60);
+                            y = clamp(y, 60, mapHeight - 60);
                             x += step;
                         }
                     }
@@ -2047,8 +2072,8 @@
                 roads = [];
                 nodes = {};
 
-                const cols = Math.ceil(window.innerWidth / CFG.gridSize) + 2;
-                const rows = Math.ceil(window.innerHeight / CFG.gridSize) + 2;
+                const cols = Math.ceil(mapWidth / CFG.gridSize) + 2;
+                const rows = Math.ceil(mapHeight / CFG.gridSize) + 2;
 
                 for (let gy = -1; gy < rows; gy++) {
                     for (let gx = -1; gx < cols; gx++) {
@@ -2153,8 +2178,8 @@
             function generateParks() {
                 parks = [];
 
-                const cols = Math.ceil(window.innerWidth / CFG.gridSize) + 2;
-                const rows = Math.ceil(window.innerHeight / CFG.gridSize) + 2;
+                const cols = Math.ceil(mapWidth / CFG.gridSize) + 2;
+                const rows = Math.ceil(mapHeight / CFG.gridSize) + 2;
 
                 for (let gy = -1; gy < rows; gy++) {
                     for (let gx = -1; gx < cols; gx++) {
@@ -2183,9 +2208,9 @@
 
                             let ok =
                                 x > -w &&
-                                x < window.innerWidth + w &&
+                                x < mapWidth + w &&
                                 y > -h &&
-                                y < window.innerHeight + h;
+                                y < mapHeight + h;
 
                             if (ok) ok = !park.overlapsRoad(roads);
                             if (ok) ok = !park.overlapsRiver(river);
@@ -2240,7 +2265,7 @@
                   </button>
                 </div>
                 <div class="footer-note">
-                  Tip: Hover markers to reveal labels. The city regenerates on each load.
+                  Tip: Move and zoom around the map to explore different areas and find hidden treasures.
                 </div>
               </div>
             </div>
@@ -2265,6 +2290,15 @@
                     { x: mainBounds.centerX, y: mainBounds.centerY },
                 ];
 
+                // Define the visible initial viewport area in world coordinates
+                // The initial camera is centered, so visible area is centered in the map
+                const viewportBounds = {
+                    minX: (mapWidth - window.innerWidth) / 2,
+                    maxX: (mapWidth + window.innerWidth) / 2,
+                    minY: (mapHeight - window.innerHeight) / 2,
+                    maxY: (mapHeight + window.innerHeight) / 2,
+                };
+
                 for (const link of LINKS) {
                     let x = 0;
                     let y = 0;
@@ -2280,31 +2314,37 @@
 
                         const p =
                             r.path[Math.floor(Math.random() * r.path.length)];
+
+                        // Only consider roads within or near the visible initial viewport
+                        const margin = 200;
+                        if (
+                            p.x < viewportBounds.minX - margin ||
+                            p.x > viewportBounds.maxX + margin ||
+                            p.y < viewportBounds.minY - margin ||
+                            p.y > viewportBounds.maxY + margin
+                        ) {
+                            attempts++;
+                            continue;
+                        }
+
                         const offset = 110 + Math.random() * 80;
                         const ang = Math.random() * Math.PI * 2;
 
                         x = p.x + Math.cos(ang) * offset;
                         y = p.y + Math.sin(ang) * offset;
 
-                        // Check if point is in exclusion zones
+                        // Check if marker is at least somewhat visible (relaxed constraints)
                         if (
-                            isPointInExclusionZone(
-                                x,
-                                y,
-                                mainBounds,
-                                legendBounds,
-                            )
+                            x < viewportBounds.minX - CFG.markerPadding ||
+                            x > viewportBounds.maxX + CFG.markerPadding ||
+                            y < viewportBounds.minY - CFG.markerPadding ||
+                            y > viewportBounds.maxY + CFG.markerPadding
                         ) {
                             attempts++;
                             continue;
                         }
 
-                        // Clamp to screen
-                        const clamped = clampToScreen(x, y, CFG.markerPadding);
-                        x = clamped.x;
-                        y = clamped.y;
-
-                        // Re-check exclusion zones after clamping
+                        // Check if point is in exclusion zones
                         if (
                             isPointInExclusionZone(
                                 x,
@@ -2333,8 +2373,15 @@
 
                     const el = document.createElement("div");
                     el.className = "marker";
-                    el.style.left = `${x}px`;
-                    el.style.top = `${y}px`;
+                    // Store world coordinates as data attributes
+                    el.dataset.worldX = x;
+                    el.dataset.worldY = y;
+                    // Position in screen space with camera offset and zoom
+                    const screenX = x * camera.zoom + camera.x;
+                    const screenY = y * camera.zoom + camera.y;
+                    el.style.left = `${screenX}px`;
+                    el.style.top = `${screenY}px`;
+                    el.style.transform = `translate(-50%, -100%) scale(${camera.zoom})`;
                     el.innerHTML = `
             <div class="tooltip">${link.name}</div>
             <a href="${link.url}" target="_blank" rel="noopener" aria-label="${link.name}">
@@ -2363,14 +2410,10 @@
                 ctx.lineWidth = 1;
 
                 const step = 90;
-                for (
-                    let x = -window.innerHeight;
-                    x < window.innerWidth + window.innerHeight;
-                    x += step
-                ) {
+                for (let x = -mapHeight; x < mapWidth + mapHeight; x += step) {
                     ctx.beginPath();
                     ctx.moveTo(x, 0);
-                    ctx.lineTo(x + window.innerHeight, window.innerHeight);
+                    ctx.lineTo(x + mapHeight, mapHeight);
                     ctx.stroke();
                 }
                 ctx.restore();
@@ -2386,6 +2429,11 @@
                 }
                 ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
+                // Apply camera transformation (translate and zoom)
+                ctx.save();
+                ctx.translate(camera.x, camera.y);
+                ctx.scale(camera.zoom, camera.zoom);
+
                 drawBackdrop();
 
                 for (const b of buildings) b.draw(ctx);
@@ -2395,6 +2443,8 @@
                     r.step();
                     r.draw(ctx);
                 }
+
+                ctx.restore();
 
                 requestAnimationFrame(draw);
             }
@@ -2423,6 +2473,194 @@
                 }
             }
 
+            // ====== PANNING ======
+            function onMouseDown(e) {
+                if (e.target !== canvas) return;
+                isDragging = true;
+                dragStart.x = e.clientX;
+                dragStart.y = e.clientY;
+                dragOffset.x = camera.x;
+                dragOffset.y = camera.y;
+                canvas.style.cursor = "grabbing";
+            }
+
+            function onMouseMove(e) {
+                if (!isDragging) return;
+
+                const dx = e.clientX - dragStart.x;
+                const dy = e.clientY - dragStart.y;
+
+                // Update camera position
+                camera.x = dragOffset.x + dx;
+                camera.y = dragOffset.y + dy;
+
+                applyBounds();
+                updateMarkerPositions();
+            }
+
+            function onMouseUp(e) {
+                isDragging = false;
+                canvas.style.cursor = "grab";
+            }
+
+            function onTouchStart(e) {
+                if (e.target !== canvas) return;
+
+                if (e.touches.length === 2) {
+                    // Pinch zoom starting
+                    isDragging = false;
+                    lastPinchDistance = getPinchDistance(
+                        e.touches[0],
+                        e.touches[1],
+                    );
+                } else if (e.touches.length === 1) {
+                    // Single touch pan
+                    isDragging = true;
+                    dragStart.x = e.touches[0].clientX;
+                    dragStart.y = e.touches[0].clientY;
+                    dragOffset.x = camera.x;
+                    dragOffset.y = camera.y;
+                }
+            }
+
+            function onTouchMove(e) {
+                if (e.touches.length === 2) {
+                    // Pinch zoom
+                    e.preventDefault();
+
+                    const currentDistance = getPinchDistance(
+                        e.touches[0],
+                        e.touches[1],
+                    );
+                    if (lastPinchDistance > 0) {
+                        const center = getPinchCenter(
+                            e.touches[0],
+                            e.touches[1],
+                        );
+                        const rect = canvas.getBoundingClientRect();
+                        const centerX = center.x - rect.left;
+                        const centerY = center.y - rect.top;
+
+                        // Calculate world position before zoom
+                        const worldX = (centerX - camera.x) / camera.zoom;
+                        const worldY = (centerY - camera.y) / camera.zoom;
+
+                        // Calculate new zoom
+                        const zoomDelta = currentDistance / lastPinchDistance;
+                        const newZoom = Math.max(
+                            MIN_ZOOM,
+                            Math.min(MAX_ZOOM, camera.zoom * zoomDelta),
+                        );
+
+                        // Calculate new camera position to keep pinch center stationary
+                        camera.x = centerX - worldX * newZoom;
+                        camera.y = centerY - worldY * newZoom;
+                        camera.zoom = newZoom;
+
+                        applyBounds();
+                        updateMarkerPositions();
+                    }
+
+                    lastPinchDistance = currentDistance;
+                } else if (e.touches.length === 1 && isDragging) {
+                    // Single touch pan
+                    e.preventDefault();
+
+                    const dx = e.touches[0].clientX - dragStart.x;
+                    const dy = e.touches[0].clientY - dragStart.y;
+
+                    camera.x = dragOffset.x + dx;
+                    camera.y = dragOffset.y + dy;
+
+                    applyBounds();
+                    updateMarkerPositions();
+                }
+            }
+
+            function onTouchEnd(e) {
+                if (e.touches.length < 2) {
+                    lastPinchDistance = 0;
+                }
+                if (e.touches.length === 0) {
+                    isDragging = false;
+                }
+            }
+
+            function updateMarkerPositions() {
+                const markers = markersEl.querySelectorAll(".marker");
+                markers.forEach((marker) => {
+                    if (marker.classList.contains("main")) return;
+
+                    const worldX = parseFloat(marker.dataset.worldX);
+                    const worldY = parseFloat(marker.dataset.worldY);
+
+                    if (!isNaN(worldX) && !isNaN(worldY)) {
+                        const screenX = worldX * camera.zoom + camera.x;
+                        const screenY = worldY * camera.zoom + camera.y;
+                        marker.style.left = `${screenX}px`;
+                        marker.style.top = `${screenY}px`;
+                        marker.style.transform = `translate(-50%, -100%) scale(${camera.zoom})`;
+                    }
+                });
+            }
+
+            // ====== ZOOMING ======
+            function onWheel(e) {
+                e.preventDefault();
+
+                // Get mouse position relative to canvas
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Calculate world position before zoom
+                const worldX = (mouseX - camera.x) / camera.zoom;
+                const worldY = (mouseY - camera.y) / camera.zoom;
+
+                // Calculate zoom delta
+                const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newZoom = Math.max(
+                    MIN_ZOOM,
+                    Math.min(MAX_ZOOM, camera.zoom * zoomDelta),
+                );
+
+                // Calculate new camera position to keep mouse point stationary
+                camera.x = mouseX - worldX * newZoom;
+                camera.y = mouseY - worldY * newZoom;
+                camera.zoom = newZoom;
+
+                // Apply bounds
+                applyBounds();
+                updateMarkerPositions();
+            }
+
+            function getPinchDistance(touch1, touch2) {
+                const dx = touch2.clientX - touch1.clientX;
+                const dy = touch2.clientY - touch1.clientY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            function getPinchCenter(touch1, touch2) {
+                return {
+                    x: (touch1.clientX + touch2.clientX) / 2,
+                    y: (touch1.clientY + touch2.clientY) / 2,
+                };
+            }
+
+            function applyBounds() {
+                const scaledWidth = mapWidth * camera.zoom;
+                const scaledHeight = mapHeight * camera.zoom;
+
+                camera.x = Math.max(
+                    -(scaledWidth - window.innerWidth),
+                    Math.min(0, camera.x),
+                );
+                camera.y = Math.max(
+                    -(scaledHeight - window.innerHeight),
+                    Math.min(0, camera.y),
+                );
+            }
+
             // ====== INIT ======
             function init() {
                 // Restore theme from localStorage
@@ -2439,11 +2677,32 @@
                 generateAll();
                 draw();
 
+                // Set cursor style for panning
+                canvas.style.cursor = "grab";
+
+                // Add event listeners
                 window.addEventListener("resize", () => {
                     resize();
                     generateAll();
                 });
                 window.addEventListener("keydown", onKeyDown);
+
+                // Mouse events for panning
+                canvas.addEventListener("mousedown", onMouseDown);
+                window.addEventListener("mousemove", onMouseMove);
+                window.addEventListener("mouseup", onMouseUp);
+
+                // Mouse wheel for zooming
+                canvas.addEventListener("wheel", onWheel, { passive: false });
+
+                // Touch events for mobile panning and pinch zoom
+                canvas.addEventListener("touchstart", onTouchStart, {
+                    passive: false,
+                });
+                canvas.addEventListener("touchmove", onTouchMove, {
+                    passive: false,
+                });
+                canvas.addEventListener("touchend", onTouchEnd);
             }
 
             init();
