@@ -562,7 +562,8 @@ html.light-mode .card {
 }
 
 .card::before,
-.legend::before {
+.legend::before,
+.copyright::before {
     content: "";
     position: absolute;
     inset: -2px;
@@ -588,6 +589,9 @@ html.light-mode .card::before {
 }
 
 html.light-mode .legend::before {
+    opacity: 0;
+}
+html.light-mode .copyright::before {
     opacity: 0;
 }
 
@@ -883,6 +887,30 @@ html.light-mode .swatch.river {
     background: rgba(120, 180, 255, 0.6);
 }
 
+.copyright {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    padding: 5px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.85);
+    transition:
+        background 300ms ease,
+        border-color 300ms ease,
+        box-shadow 300ms ease;
+
+    font-size: 10px;
+}
+
+html.light-mode .copyright {
+    color: rgba(50, 80, 120, 0.85);
+    background: rgb(255 255 255 / 53%);
+    border: 1px solid rgba(100, 150, 200, 0.25);
+    backdrop-filter: blur(2px);
+}
+
 /* Tablet/medium screens */
 @media (max-width: 1024px) {
     :root {
@@ -944,7 +972,7 @@ html.light-mode .swatch.river {
 
     .legend {
         left: 10px;
-        bottom: 10px;
+        bottom: 48px;
         right: 10px;
         padding: 8px 10px;
         border-radius: 12px;
@@ -970,6 +998,12 @@ html.light-mode .swatch.river {
     .swatch {
         width: 12px;
         height: 12px;
+    }
+
+    .copyright {
+        border-radius: 12px;
+        max-width: none;
+        width: auto;
     }
 }
 
@@ -1062,6 +1096,10 @@ html.light-mode .swatch.river {
     .swatch {
         width: 10px;
         height: 10px;
+    }
+
+    .copyright {
+        border-radius: 10px;
     }
 }
 

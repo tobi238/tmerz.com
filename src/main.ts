@@ -14,6 +14,10 @@ const ctx = canvas.getContext("2d", {
 }) as CanvasRenderingContext2D;
 const markersEl = document.getElementById("markers") as HTMLElement;
 
+// set the copyright year to current year
+const copyrightYear = document.querySelector("#year") as HTMLDivElement;
+copyrightYear.innerText = new Date().getFullYear().toString();
+
 // SVG Icons - larger and more visible
 const ICONS: Record<string, string> = {
   mail: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M2 6l10 7 10-7" fill="none"/></svg>`,
