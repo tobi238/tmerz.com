@@ -8,6 +8,26 @@
             name="description"
             content="Tobias Merz — Senior Developer & GIS / Geodata / Web Mapping Expert."
         />
+
+        <link
+            rel="icon"
+            type="image/png"
+            href="/favicon-96x96.png"
+            sizes="96x96"
+        />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
+        />
+        <meta
+            name="apple-mobile-web-app-title"
+            content="Tobias Merz - Homepage"
+        />
+        <link rel="manifest" href="/site.webmanifest" />
+
         <style>
             @font-face {
                 font-family: "MuseoModerno-regular";
@@ -1209,7 +1229,12 @@
                 markerMinDistance: 180,
 
                 // Map size multiplier
-                mapScale: 3,
+                mapScale: 2.5,
+
+                // Animation - minimal subtle movement
+                animationDuration: 1500,
+                animationPanRange: 8,
+                animationZoomRange: 0.2,
             };
 
             // Social links (replace with your real URLs)
@@ -1258,6 +1283,12 @@
 
             // Pinch zoom state
             let lastPinchDistance = 0;
+
+            // Animation state
+            let animationStart = 0;
+            let isAnimating = false;
+            let animationTarget = { x: 0, y: 0, zoom: 1 };
+            let animationInitial = { x: 0, y: 0, zoom: 1 };
 
             // ====== UTIL ======
             function resize() {
@@ -1445,6 +1476,11 @@
 
                 // Add a small buffer
                 return distance < markerRadius + 10;
+            }
+
+            // ====== EASING ======
+            function easeOutQuad(t) {
+                return 1 - (1 - t) * (1 - t);
             }
 
             // ====== MAP PRIMITIVES ======
@@ -2402,6 +2438,54 @@
                 placeMarkers();
             }
 
+            function startMapAnimation() {
+                isAnimating = true;
+                animationStart = Date.now();
+
+                // Very subtle random movement (only few pixels)
+                const randomPanX =
+                    (Math.random() - 0.5) * CFG.animationPanRange;
+                const randomPanY =
+                    (Math.random() - 0.5) * CFG.animationPanRange;
+                const randomZoom =
+                    1 + (Math.random() - 0.5) * CFG.animationZoomRange;
+
+                animationInitial = { ...camera };
+                animationTarget = {
+                    x: camera.x + randomPanX,
+                    y: camera.y + randomPanY,
+                    zoom: randomZoom,
+                };
+            }
+
+            function updateAnimation() {
+                if (!isAnimating) return;
+
+                const now = Date.now();
+                const elapsed = now - animationStart;
+                let progress = Math.min(1, elapsed / CFG.animationDuration);
+
+                // Ease out quad
+                progress = easeOutQuad(progress);
+
+                camera.x =
+                    animationInitial.x +
+                    (animationTarget.x - animationInitial.x) * progress;
+                camera.y =
+                    animationInitial.y +
+                    (animationTarget.y - animationInitial.y) * progress;
+                camera.zoom =
+                    animationInitial.zoom +
+                    (animationTarget.zoom - animationInitial.zoom) * progress;
+
+                applyBounds();
+                updateMarkerPositions();
+
+                if (progress >= 1) {
+                    isAnimating = false;
+                }
+            }
+
             // ====== DRAW LOOP ======
             function drawBackdrop() {
                 ctx.save();
@@ -2446,6 +2530,8 @@
 
                 ctx.restore();
 
+                updateAnimation();
+
                 requestAnimationFrame(draw);
             }
 
@@ -2453,6 +2539,7 @@
             function reshuffle() {
                 sessionSeed = Math.random() * 100000;
                 generateAll();
+                startMapAnimation();
             }
 
             function toggleMode() {
@@ -2476,6 +2563,7 @@
             // ====== PANNING ======
             function onMouseDown(e) {
                 if (e.target !== canvas) return;
+                isAnimating = false;
                 isDragging = true;
                 dragStart.x = e.clientX;
                 dragStart.y = e.clientY;
@@ -2508,6 +2596,7 @@
 
                 if (e.touches.length === 2) {
                     // Pinch zoom starting
+                    isAnimating = false;
                     isDragging = false;
                     lastPinchDistance = getPinchDistance(
                         e.touches[0],
@@ -2515,6 +2604,7 @@
                     );
                 } else if (e.touches.length === 1) {
                     // Single touch pan
+                    isAnimating = false;
                     isDragging = true;
                     dragStart.x = e.touches[0].clientX;
                     dragStart.y = e.touches[0].clientY;
@@ -2599,7 +2689,7 @@
                         const screenY = worldY * camera.zoom + camera.y;
                         marker.style.left = `${screenX}px`;
                         marker.style.top = `${screenY}px`;
-                        marker.style.transform = `translate(-50%, -100%) scale(${camera.zoom})`;
+                        marker.style.transform = `translate(-50%, -100%)`;
                     }
                 });
             }
@@ -2607,6 +2697,8 @@
             // ====== ZOOMING ======
             function onWheel(e) {
                 e.preventDefault();
+
+                isAnimating = false;
 
                 // Get mouse position relative to canvas
                 const rect = canvas.getBoundingClientRect();
@@ -2675,6 +2767,7 @@
 
                 resize();
                 generateAll();
+                startMapAnimation();
                 draw();
 
                 // Set cursor style for panning
