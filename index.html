@@ -1229,12 +1229,10 @@
                 markerMinDistance: 180,
 
                 // Map size multiplier
-                mapScale: 2.5,
+                mapScale: 2,
 
                 // Animation - minimal subtle movement
                 animationDuration: 1500,
-                animationPanRange: 8,
-                animationZoomRange: 0.2,
             };
 
             // Social links (replace with your real URLs)
@@ -1268,6 +1266,7 @@
             let buildings = [];
             let parks = [];
             let nodes = {};
+            let markerPositions = [];
 
             // Camera state for panning and zooming
             let camera = { x: 0, y: 0, zoom: 1 };
@@ -2325,6 +2324,9 @@
                 const placed = [
                     { x: mainBounds.centerX, y: mainBounds.centerY },
                 ];
+                markerPositions = [
+                    { x: mainBounds.centerX, y: mainBounds.centerY },
+                ];
 
                 // Define the visible initial viewport area in world coordinates
                 // The initial camera is centered, so visible area is centered in the map
@@ -2406,6 +2408,7 @@
                     if (attempts >= 120) continue;
 
                     placed.push({ x, y });
+                    markerPositions.push({ x, y });
 
                     const el = document.createElement("div");
                     el.className = "marker";
@@ -2442,19 +2445,44 @@
                 isAnimating = true;
                 animationStart = Date.now();
 
-                // Very subtle random movement (only few pixels)
-                const randomPanX =
-                    (Math.random() - 0.5) * CFG.animationPanRange;
-                const randomPanY =
-                    (Math.random() - 0.5) * CFG.animationPanRange;
-                const randomZoom =
-                    1 + (Math.random() - 0.5) * CFG.animationZoomRange;
+                // Calculate bounding box of all markers
+                let minX = Infinity;
+                let maxX = -Infinity;
+                let minY = Infinity;
+                let maxY = -Infinity;
+
+                for (const marker of markerPositions) {
+                    minX = Math.min(minX, marker.x);
+                    maxX = Math.max(maxX, marker.x);
+                    minY = Math.min(minY, marker.y);
+                    maxY = Math.max(maxY, marker.y);
+                }
+
+                // Center of bounding box
+                const centerX = (minX + maxX) / 2;
+                const centerY = (minY + maxY) / 2;
+
+                // Calculate zoom to fit bounding box with padding
+                const boxWidth = maxX - minX;
+                const boxHeight = maxY - minY;
+                const padding = 1.2;
+
+                const zoomX = window.innerWidth / (boxWidth * padding);
+                const zoomY = window.innerHeight / (boxHeight * padding);
+                const targetZoom = Math.min(zoomX, zoomY, MAX_ZOOM);
+
+                // Calculate camera position to center the bounding box
+                const centerScreenX = window.innerWidth / 2;
+                const centerScreenY = window.innerHeight / 2;
+
+                const targetCameraX = centerScreenX - centerX * targetZoom;
+                const targetCameraY = centerScreenY - centerY * targetZoom;
 
                 animationInitial = { ...camera };
                 animationTarget = {
-                    x: camera.x + randomPanX,
-                    y: camera.y + randomPanY,
-                    zoom: randomZoom,
+                    x: targetCameraX,
+                    y: targetCameraY,
+                    zoom: targetZoom,
                 };
             }
 
