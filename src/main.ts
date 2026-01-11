@@ -6,6 +6,8 @@
 
 import "./styles.css";
 
+import "./analytics";
+
 const canvas = document.getElementById("map") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d", {
   alpha: true,
