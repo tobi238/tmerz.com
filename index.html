@@ -9,6 +9,22 @@
             content="Tobias Merz — Senior Developer & GIS / Geodata / Web Mapping Expert."
         />
         <style>
+            @font-face {
+                font-family: "MuseoModerno-regular";
+                font-style: normal;
+                font-weight: 400;
+                font-display: swap;
+                src: url("./MuseoModerno-regular-400.woff2") format("woff2");
+            }
+
+            @font-face {
+                font-family: "MuseoModerno-bold";
+                font-style: normal;
+                font-weight: 700;
+                font-display: swap;
+                src: url("./MuseoModerno-regular-700.woff2") format("woff2");
+            }
+
             :root {
                 color-scheme: light dark;
                 --bg0: #070b18;
@@ -31,6 +47,30 @@
                 --pin-size: 68px;
                 --pin-main-size: 76px;
                 --pin-icon-size: 34px;
+            }
+
+            body,
+            p {
+                font-family: "MuseoModerno-regular", sans-serif;
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                font-family: "MuseoModerno-bold", sans-serif;
+                color: rgba(255, 255, 255, 0.95);
+            }
+
+            html.light-mode h1,
+            html.light-mode h2,
+            html.light-mode h3,
+            html.light-mode h4,
+            html.light-mode h5,
+            html.light-mode h6 {
+                color: rgba(30, 70, 130, 0.95);
             }
 
             html.light-mode {
@@ -437,11 +477,10 @@
             }
 
             .name {
-                font-size: 34px;
-                letter-spacing: -0.03em;
+                font-size: 4.5em;
+                letter-spacing: 0.06em;
                 line-height: 1.05;
                 margin: 0;
-                transition: color 300ms ease;
             }
 
             .role {
@@ -750,7 +789,7 @@
                 }
 
                 .name {
-                    font-size: 26px;
+                    font-size: 2.6em;
                 }
 
                 .role {
@@ -839,7 +878,7 @@
                 }
 
                 .name {
-                    font-size: 20px;
+                    font-size: 2em;
                 }
 
                 .role {
@@ -1043,7 +1082,7 @@
             </div>
 
             <div class="legend" aria-label="Legend">
-                <p class="legend-title">Legend</p>
+                <div class="legend-title">Legend</div>
                 <div class="legend-grid">
                     <div class="legend-item">
                         <span class="swatch street"></span><span>Street</span>
