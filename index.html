@@ -1247,13 +1247,20 @@
             let parks = [];
             let nodes = {};
 
-            // Camera state for panning
-            let camera = { x: 0, y: 0 };
+            // Camera state for panning and zooming
+            let camera = { x: 0, y: 0, zoom: 1 };
             let isDragging = false;
             let dragStart = { x: 0, y: 0 };
             let dragOffset = { x: 0, y: 0 };
             let mapWidth = 0;
             let mapHeight = 0;
+
+            // Zoom constraints
+            const MIN_ZOOM = 0.5;
+            const MAX_ZOOM = 3;
+
+            // Pinch zoom state
+            let lastPinchDistance = 0;
 
             // ====== UTIL ======
             function resize() {
@@ -2357,9 +2364,12 @@
                     // Store world coordinates as data attributes
                     el.dataset.worldX = x;
                     el.dataset.worldY = y;
-                    // Position in screen space with camera offset
-                    el.style.left = `${x + camera.x}px`;
-                    el.style.top = `${y + camera.y}px`;
+                    // Position in screen space with camera offset and zoom
+                    const screenX = x * camera.zoom + camera.x;
+                    const screenY = y * camera.zoom + camera.y;
+                    el.style.left = `${screenX}px`;
+                    el.style.top = `${screenY}px`;
+                    el.style.transform = `translate(-50%, -100%) scale(${camera.zoom})`;
                     el.innerHTML = `
             <div class="tooltip">${link.name}</div>
             <a href="${link.url}" target="_blank" rel="noopener" aria-label="${link.name}">
@@ -2407,9 +2417,10 @@
                 }
                 ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-                // Apply camera transformation
+                // Apply camera transformation (translate and zoom)
                 ctx.save();
                 ctx.translate(camera.x, camera.y);
+                ctx.scale(camera.zoom, camera.zoom);
 
                 drawBackdrop();
 
@@ -2467,16 +2478,11 @@
                 const dx = e.clientX - dragStart.x;
                 const dy = e.clientY - dragStart.y;
 
-                // Update camera position with bounds
-                camera.x = Math.max(
-                    -(mapWidth - window.innerWidth),
-                    Math.min(0, dragOffset.x + dx),
-                );
-                camera.y = Math.max(
-                    -(mapHeight - window.innerHeight),
-                    Math.min(0, dragOffset.y + dy),
-                );
+                // Update camera position
+                camera.x = dragOffset.x + dx;
+                camera.y = dragOffset.y + dy;
 
+                applyBounds();
                 updateMarkerPositions();
             }
 
@@ -2487,36 +2493,85 @@
 
             function onTouchStart(e) {
                 if (e.target !== canvas) return;
-                if (e.touches.length !== 1) return;
 
-                isDragging = true;
-                dragStart.x = e.touches[0].clientX;
-                dragStart.y = e.touches[0].clientY;
-                dragOffset.x = camera.x;
-                dragOffset.y = camera.y;
+                if (e.touches.length === 2) {
+                    // Pinch zoom starting
+                    isDragging = false;
+                    lastPinchDistance = getPinchDistance(
+                        e.touches[0],
+                        e.touches[1],
+                    );
+                } else if (e.touches.length === 1) {
+                    // Single touch pan
+                    isDragging = true;
+                    dragStart.x = e.touches[0].clientX;
+                    dragStart.y = e.touches[0].clientY;
+                    dragOffset.x = camera.x;
+                    dragOffset.y = camera.y;
+                }
             }
 
             function onTouchMove(e) {
-                if (!isDragging || e.touches.length !== 1) return;
-                e.preventDefault();
+                if (e.touches.length === 2) {
+                    // Pinch zoom
+                    e.preventDefault();
 
-                const dx = e.touches[0].clientX - dragStart.x;
-                const dy = e.touches[0].clientY - dragStart.y;
+                    const currentDistance = getPinchDistance(
+                        e.touches[0],
+                        e.touches[1],
+                    );
+                    if (lastPinchDistance > 0) {
+                        const center = getPinchCenter(
+                            e.touches[0],
+                            e.touches[1],
+                        );
+                        const rect = canvas.getBoundingClientRect();
+                        const centerX = center.x - rect.left;
+                        const centerY = center.y - rect.top;
 
-                camera.x = Math.max(
-                    -(mapWidth - window.innerWidth),
-                    Math.min(0, dragOffset.x + dx),
-                );
-                camera.y = Math.max(
-                    -(mapHeight - window.innerHeight),
-                    Math.min(0, dragOffset.y + dy),
-                );
+                        // Calculate world position before zoom
+                        const worldX = (centerX - camera.x) / camera.zoom;
+                        const worldY = (centerY - camera.y) / camera.zoom;
 
-                updateMarkerPositions();
+                        // Calculate new zoom
+                        const zoomDelta = currentDistance / lastPinchDistance;
+                        const newZoom = Math.max(
+                            MIN_ZOOM,
+                            Math.min(MAX_ZOOM, camera.zoom * zoomDelta),
+                        );
+
+                        // Calculate new camera position to keep pinch center stationary
+                        camera.x = centerX - worldX * newZoom;
+                        camera.y = centerY - worldY * newZoom;
+                        camera.zoom = newZoom;
+
+                        applyBounds();
+                        updateMarkerPositions();
+                    }
+
+                    lastPinchDistance = currentDistance;
+                } else if (e.touches.length === 1 && isDragging) {
+                    // Single touch pan
+                    e.preventDefault();
+
+                    const dx = e.touches[0].clientX - dragStart.x;
+                    const dy = e.touches[0].clientY - dragStart.y;
+
+                    camera.x = dragOffset.x + dx;
+                    camera.y = dragOffset.y + dy;
+
+                    applyBounds();
+                    updateMarkerPositions();
+                }
             }
 
             function onTouchEnd(e) {
-                isDragging = false;
+                if (e.touches.length < 2) {
+                    lastPinchDistance = 0;
+                }
+                if (e.touches.length === 0) {
+                    isDragging = false;
+                }
             }
 
             function updateMarkerPositions() {
@@ -2528,10 +2583,70 @@
                     const worldY = parseFloat(marker.dataset.worldY);
 
                     if (!isNaN(worldX) && !isNaN(worldY)) {
-                        marker.style.left = `${worldX + camera.x}px`;
-                        marker.style.top = `${worldY + camera.y}px`;
+                        const screenX = worldX * camera.zoom + camera.x;
+                        const screenY = worldY * camera.zoom + camera.y;
+                        marker.style.left = `${screenX}px`;
+                        marker.style.top = `${screenY}px`;
+                        marker.style.transform = `translate(-50%, -100%) scale(${camera.zoom})`;
                     }
                 });
+            }
+
+            // ====== ZOOMING ======
+            function onWheel(e) {
+                e.preventDefault();
+
+                // Get mouse position relative to canvas
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Calculate world position before zoom
+                const worldX = (mouseX - camera.x) / camera.zoom;
+                const worldY = (mouseY - camera.y) / camera.zoom;
+
+                // Calculate zoom delta
+                const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newZoom = Math.max(
+                    MIN_ZOOM,
+                    Math.min(MAX_ZOOM, camera.zoom * zoomDelta),
+                );
+
+                // Calculate new camera position to keep mouse point stationary
+                camera.x = mouseX - worldX * newZoom;
+                camera.y = mouseY - worldY * newZoom;
+                camera.zoom = newZoom;
+
+                // Apply bounds
+                applyBounds();
+                updateMarkerPositions();
+            }
+
+            function getPinchDistance(touch1, touch2) {
+                const dx = touch2.clientX - touch1.clientX;
+                const dy = touch2.clientY - touch1.clientY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            function getPinchCenter(touch1, touch2) {
+                return {
+                    x: (touch1.clientX + touch2.clientX) / 2,
+                    y: (touch1.clientY + touch2.clientY) / 2,
+                };
+            }
+
+            function applyBounds() {
+                const scaledWidth = mapWidth * camera.zoom;
+                const scaledHeight = mapHeight * camera.zoom;
+
+                camera.x = Math.max(
+                    -(scaledWidth - window.innerWidth),
+                    Math.min(0, camera.x),
+                );
+                camera.y = Math.max(
+                    -(scaledHeight - window.innerHeight),
+                    Math.min(0, camera.y),
+                );
             }
 
             // ====== INIT ======
@@ -2565,7 +2680,10 @@
                 window.addEventListener("mousemove", onMouseMove);
                 window.addEventListener("mouseup", onMouseUp);
 
-                // Touch events for mobile panning
+                // Mouse wheel for zooming
+                canvas.addEventListener("wheel", onWheel, { passive: false });
+
+                // Touch events for mobile panning and pinch zoom
                 canvas.addEventListener("touchstart", onTouchStart, {
                     passive: false,
                 });
