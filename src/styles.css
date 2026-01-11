@@ -921,10 +921,6 @@ html.light-mode .swatch.river {
         letter-spacing: 0.1em;
     }
 
-    .tagline {
-        /*display: none;*/
-    }
-
     .chips {
         display: none;
     }
