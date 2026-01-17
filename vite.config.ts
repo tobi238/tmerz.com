@@ -4,7 +4,6 @@ export default defineConfig({
   build: {
     outDir: "dist",
     assetsDir: "assets",
-    sourcemap: true,
   },
   server: {
     port: 3000,
